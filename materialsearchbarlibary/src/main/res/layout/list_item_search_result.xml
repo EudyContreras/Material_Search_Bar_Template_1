@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.constraint.ConstraintLayout
+	xmlns:app="http://schemas.android.com/apk/res-auto"
+	xmlns:android="http://schemas.android.com/apk/res/android"
+	android:backgroundTint="@color/colorPrimary"
+	android:background="@drawable/bg_shape_round"
+	android:layout_width="match_parent"
+	android:layout_height="80dp"
+	android:layout_marginTop="3dp"
+	android:layout_marginBottom="3dp"
+	android:elevation="1dp"
+	android:translationZ="8dp">
+</android.support.constraint.ConstraintLayout>
+
+
+
+
+

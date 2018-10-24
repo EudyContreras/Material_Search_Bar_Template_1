@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:elevation="1dp"
+    android:translationZ="5dp"
+    android:animateLayoutChanges="true">
+
+    <View
+        android:id="@+id/guideline_outer"
+        android:visibility="invisible"
+        android:layout_width="34dp"
+        android:layout_height="34dp"
+        android:layout_marginLeft="2dp"
+        android:layout_marginRight="2dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"/>
+
+    <FrameLayout
+        android:id="@+id/searchBarCancel"
+        android:background="@drawable/bg_shape_oval"
+        android:backgroundTint="@color/colorPrimaryDark"
+        android:clickable="false"
+        android:focusable="false"
+        android:visibility="invisible"
+        android:elevation="1dp"
+        android:translationZ="4dp"
+        android:layout_marginLeft="2dp"
+        android:layout_marginRight="2dp"
+        android:layout_marginBottom="3dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent">
+
+        <View
+            android:layout_gravity="end|center_vertical"
+            android:layout_margin="6dp"
+            android:id="@+id/searchBarCancelIcon"
+            android:background="@drawable/ic_cancel"
+            android:layout_width="24dp"
+            android:layout_height="24dp" />
+
+    </FrameLayout>
+
+   <android.support.constraint.ConstraintLayout
+       android:layout_width="0dp"
+       android:layout_height="match_parent"
+       android:id="@+id/searchBarLayout"
+       android:background="@drawable/bg_search_bar"
+       android:backgroundTint="@color/colorPrimaryVeryDark"
+       android:layout_marginEnd="9dp"
+       android:layout_marginStart="9dp"
+       android:layout_marginTop="10dp"
+       android:layout_marginBottom="12dp"
+       app:layout_constraintStart_toEndOf="@id/guideline_outer"
+       app:layout_constraintEnd_toStartOf="@id/searchBarCancel">
+
+       <EditText
+           android:id="@+id/searchBarInput"
+           android:layout_width="0dp"
+           android:layout_height="0dp"
+           android:background="@color/transparent"
+           android:layout_marginTop="2dp"
+           android:layout_marginBottom="4dp"
+           android:layout_marginStart="4dp"
+           android:layout_marginEnd="4dp"
+           android:textSize="13sp"
+           app:layout_constraintStart_toEndOf="@id/searchBarIcon"
+           app:layout_constraintEnd_toStartOf="@id/searchBarClear"
+           app:layout_constraintBottom_toBottomOf="parent"
+           app:layout_constraintTop_toTopOf="parent"/>
+
+       <View
+           android:id="@+id/searchBarHintIcon"
+           android:layout_width="20dp"
+           android:layout_height="20dp"
+           android:layout_marginEnd="2dp"
+           android:background="@drawable/ic_search"
+           android:backgroundTint="@color/colorPrimaryDarkLight"
+           android:text="Search"
+           android:textAlignment="gravity"
+           android:textColor="@color/semi_white"
+           android:textSize="12sp"
+           app:layout_constraintBottom_toBottomOf="parent"
+           app:layout_constraintEnd_toStartOf="@id/guideline"
+           app:layout_constraintTop_toTopOf="parent" />
+
+       <android.support.constraint.Guideline
+           android:id="@+id/guideline"
+           android:layout_width="wrap_content"
+           android:layout_height="wrap_content"
+           android:orientation="vertical"
+           app:layout_constraintGuide_percent="0.5" />
+
+       <TextView
+           android:id="@+id/searchBarHint"
+           android:layout_width="wrap_content"
+           android:layout_height="wrap_content"
+           android:layout_marginBottom="4dp"
+           android:gravity="center_vertical"
+           android:text="Search"
+           android:textStyle="bold"
+           android:fontFamily="sans-serif"
+           android:textAlignment="gravity"
+           android:textColor="@color/colorPrimaryDarkLight"
+           android:textSize="12sp"
+           app:layout_constraintTop_toTopOf="parent"
+           app:layout_constraintBottom_toBottomOf="parent"
+           app:layout_constraintStart_toEndOf="@id/guideline"/>
+
+
+       <FrameLayout
+           android:id="@+id/searchBarClear"
+           android:background="@drawable/bg_shape_oval"
+           android:backgroundTint="@color/colorPrimaryDark"
+           android:layout_width="wrap_content"
+           android:layout_height="wrap_content"
+           android:layout_marginEnd="5dp"
+           android:elevation="1dp"
+           android:translationZ="6dp"
+           android:scaleX="0"
+           android:scaleY="0"
+           android:alpha="0"
+           app:layout_constraintTop_toTopOf="parent"
+           app:layout_constraintBottom_toBottomOf="parent"
+           app:layout_constraintEnd_toEndOf="parent">
+
+           <View
+               android:background="@drawable/ic_close"
+               android:backgroundTint="@color/semi_white"
+               android:layout_margin="6dp"
+               android:layout_width="14dp"
+               android:layout_height="14dp"/>
+       </FrameLayout>
+
+
+       <View
+           android:id="@+id/searchBarIcon"
+           android:background="@drawable/ic_search"
+           android:backgroundTint="@color/colorPrimary"
+           android:layout_width="20dp"
+           android:layout_height="20dp"
+           android:layout_marginStart="8dp"
+           android:scaleX="0"
+           android:scaleY="0"
+           app:layout_constraintTop_toTopOf="parent"
+           app:layout_constraintBottom_toBottomOf="parent"
+           app:layout_constraintStart_toStartOf="parent"/>
+   </android.support.constraint.ConstraintLayout>
+</android.support.constraint.ConstraintLayout>

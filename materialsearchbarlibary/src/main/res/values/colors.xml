@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="colorPrimary">#FFFFFFFF</color>
+    <color name="colorPrimaryDark">#FF212121</color>
+    <color name="colorPrimaryDarkLight">#FF404040</color>
+    <color name="colorPrimaryDarker">#FF1c1c1c</color>
+    <color name="colorPrimaryVeryDark">#FF181818</color>
+    <color name="colorAccent">#b71c1c</color>
+
+    <color name="navigation_item_active">#FFFFFFFF</color>
+    <color name="navigation_item_inactive">#FF555555</color>
+
+    <color name="icon_item_active">#424242</color>
+    <color name="icon_item_inactive">#757575</color>
+
+    <color name="transparent">#00000000</color>
+    <color name="semi_white">#6BFFFFFF</color>
+    <color name="white">#ffffff</color>
+    <color name="black">#000000</color>
+</resources>
