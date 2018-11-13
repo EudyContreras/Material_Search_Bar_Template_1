@@ -1,4 +1,4 @@
-package com.eudycontreras.materialsearchbarlibary.listeners
+package com.eudycontreras.materialsearchbarlibary
 
 import com.eudycontreras.materialsearchbarlibary.modelsMSB.SearchResult
 
@@ -11,6 +11,6 @@ import com.eudycontreras.materialsearchbarlibary.modelsMSB.SearchResult
  * @author  Eudy Contreras
  * @version 1.0
  */
-interface SearchResultListener<T> {
-    fun onSearchResultObtained(searchResults: List<SearchResult<T>>)
+abstract class SearchEngine<T>{
+        abstract fun performSearch(listener: (List<SearchResult<T>>)->Unit) : (String)->Unit
 }

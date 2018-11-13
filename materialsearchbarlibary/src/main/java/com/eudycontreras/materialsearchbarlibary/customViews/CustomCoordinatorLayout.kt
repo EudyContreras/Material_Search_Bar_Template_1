@@ -25,7 +25,6 @@ class CustomCoordinatorLayout: CoordinatorLayout{
 
     constructor(context: Context, attrs: AttributeSet, defStyle: Int): super(context, attrs, defStyle)
 
-
     override fun onInterceptTouchEvent(ev: MotionEvent): Boolean {
         touchEventListener?.onTouchEvent(ev)
         return super.onInterceptTouchEvent(ev)

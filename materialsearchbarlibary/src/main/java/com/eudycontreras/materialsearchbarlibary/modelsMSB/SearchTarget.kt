@@ -1,4 +1,4 @@
-package com.eudycontreras.materialsearchbarlibary.models
+package com.eudycontreras.materialsearchbarlibary.modelsMSB
 
 /**
  * Unlicensed private property of the author and creator.
@@ -9,12 +9,6 @@ package com.eudycontreras.materialsearchbarlibary.models
  * @author  Eudy Contreras
  * @version 1.0
  */
-class SearchResult(
-        var resultPriority: Int = 0,
-        var resultType: SearchResultType? = null){
-
-    enum class SearchResultType {
-        CREATOR,
-        POST
-    }
+abstract class SearchTarget {
+    abstract fun getTargets() : Array<String>
 }

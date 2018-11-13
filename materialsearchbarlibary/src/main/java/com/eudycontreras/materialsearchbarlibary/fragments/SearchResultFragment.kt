@@ -110,7 +110,7 @@ class SearchResultFragment : Fragment() {
         createSpringAnimation(0f, 1f, duration, distance, friction, tension,
                 { value ->
                     searchResultContainerBackground.animate()
-                            .scaleY(value.toFloat())
+                            .scaleY(value)
                             .alpha(1f)
                             .setDuration(0)
                             .start()

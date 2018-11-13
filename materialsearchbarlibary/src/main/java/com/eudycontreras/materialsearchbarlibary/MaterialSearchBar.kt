@@ -17,6 +17,9 @@ import android.view.View
 import android.view.animation.OvershootInterpolator
 import android.widget.EditText
 import android.widget.TextView
+import com.eudycontreras.materialsearchbarlibary.fragments.SearchResultFragment
+import com.eudycontreras.materialsearchbarlibary.listeners.BackPressListener
+import com.eudycontreras.materialsearchbarlibary.modelsMSB.SearchResult
 
 /**
  * Unlicensed private property of the author and creator.
@@ -27,7 +30,7 @@ import android.widget.TextView
  * @author  Eudy Contreras
  * @version 1.0
  */
-class MaterialSearchBar(private var activity: AppCompatActivity, var parentView: View, private var resultContainerId: Int) {
+class MaterialSearchBar(private var activity: AppCompatActivity,  parentView: View?, private var resultContainerId: Int) {
 
     private lateinit var inputField: EditText
     private lateinit var searchHintText: TextView
@@ -39,25 +42,45 @@ class MaterialSearchBar(private var activity: AppCompatActivity, var parentView:
 
     private lateinit var searchBarLayout: ConstraintLayout
     private lateinit var searchLayoutParent: ConstraintLayout
-    private lateinit var resultWindowComponent: MaterialSearchResultWindow
-    
+
+    private var resultFragment: SearchResultFragment = SearchResultFragment()
+
     private var onSearchActive: Action? = null
     private var onSearchInactive: Action? = null
 
     private var searchHintShown = true
     private var showingResults = false
-    private var searchBarActive = false
+
+    private val engines: ArrayList<(String)->Unit> = ArrayList()
 
     constructor(activity: AppCompatActivity, parentView: View): this(activity, parentView, -1)
 
+    constructor(activity: AppCompatActivity): this(activity, null, -1)
+
     init {
         this.initComponents()
+        parentView?.let {
+            this.initViews(it)
+            this.registerListeners()
+        }
+    }
+
+    private fun initComponents() {
+        this.resultFragment.setOnBackPressed(object : BackPressListener {
+            override fun onBackPressed() {
+                removeInputFocus()
+            }
+        })
+    }
+
+    fun setParentView(parentView: View){
+        this.searchLayoutParent = parentView as ConstraintLayout
         this.initViews(parentView)
         this.registerListeners()
     }
 
-    private fun initComponents() {
-        this.resultWindowComponent = MaterialSearchResultWindow(activity, this, resultContainerId)
+    fun setResultContainerId(resultContainerId: Int){
+        this.resultContainerId = resultContainerId
     }
 
     private fun initViews(view: View) {
@@ -102,6 +125,8 @@ class MaterialSearchBar(private var activity: AppCompatActivity, var parentView:
         }
 
         this.inputField.addTextChangedListener(object : TextWatcher {
+            var lastText: String = ""
+
             override fun beforeTextChanged(s: CharSequence, start: Int, count: Int, after: Int) {
 
             }
@@ -111,6 +136,7 @@ class MaterialSearchBar(private var activity: AppCompatActivity, var parentView:
             }
 
             override fun afterTextChanged(s: Editable) {
+                val prefix = s.toString()
                 if (inputField.text.isEmpty()) {
                     if (!searchHintShown) {
                         showHint()
@@ -120,13 +146,17 @@ class MaterialSearchBar(private var activity: AppCompatActivity, var parentView:
                         hideHint()
                     }
 
-                    performSearch(inputField.text.toString())
+                    if(prefix != lastText){
+                        performSearch(prefix)
+                    }
                 }
+
+                lastText = prefix
             }
         })
     }
 
-    fun removeInputFocus() {
+    private fun removeInputFocus() {
         hideSoftInputKeyboard(activity)
         Handler().postDelayed({ inputField.clearFocus() }, 50)
     }
@@ -205,7 +235,7 @@ class MaterialSearchBar(private var activity: AppCompatActivity, var parentView:
                     if (onSearchActive != null) {
                         onSearchActive?.invoke()
                     }
-                    openSearchResults()
+                   //openSearchResults()
                     searchCancel.isClickable = true
                     searchCancel.isFocusable = true
                     searchCancel.visibility = View.VISIBLE
@@ -286,16 +316,29 @@ class MaterialSearchBar(private var activity: AppCompatActivity, var parentView:
         }
     }
 
+    private fun showResultsWindow() {
+        val transactionIds = intArrayOf(0,0,0,0)
+        addFragment(activity, resultFragment, resultContainerId, transactionIds)
+    }
+
+    private fun hideResultsWindow() {
+        resultFragment.hideResultContainer {
+            android.os.Handler().postDelayed({ removeFragment(activity, resultFragment) },200)
+        }
+    }
+
     private fun performSearch(input: String) {
-        resultWindowComponent.showResultsForInput(input)
+        for (engine in engines){
+            engine(input)
+        }
     }
 
     private fun openSearchResults() {
-        resultWindowComponent.showResultsWindow()
+        showResultsWindow()
     }
 
     private fun closeSearchResults() {
-        resultWindowComponent.hideResultsWindow()
+         hideResultsWindow()
     }
 
     fun setOnSearchActive(action: Action?) {
@@ -304,5 +347,9 @@ class MaterialSearchBar(private var activity: AppCompatActivity, var parentView:
 
     fun setOnSearchInactive(action: Action?) {
         this.onSearchInactive = action
+    }
+
+    fun <T> addSearchEngine(engine: SearchEngine<T>, listener: (List<SearchResult<T>>)-> Unit){
+        engines.add(engine.performSearch(listener))
     }
 }

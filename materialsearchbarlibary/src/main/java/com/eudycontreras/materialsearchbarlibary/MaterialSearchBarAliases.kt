@@ -4,7 +4,6 @@ import android.content.Context
 import android.support.v4.app.Fragment
 import android.support.v7.app.AppCompatActivity
 import android.util.DisplayMetrics
-import android.view.View
 import android.view.inputmethod.InputMethodManager
 import com.facebook.rebound.SimpleSpringListener
 import com.facebook.rebound.Spring
@@ -23,6 +22,27 @@ import com.facebook.rebound.SpringSystem
 internal typealias Action = ()-> Unit
 
 internal typealias SpringValue = (Float) -> Unit
+
+typealias ResultPredicate<T> = (T) -> Boolean
+
+internal fun String.containsWord(word: String): Boolean {
+    val index = this.indexOf(word)
+
+    if(index != -1){
+        val lastIndex = (index + word.length)+1
+
+        if(index != 0){
+            if(this[index-1]== ' ' && this[if (lastIndex != word.length) lastIndex else word.length-1 ] == ' '){
+                return true
+            }
+        }else{
+            if(this[if (lastIndex != word.length) lastIndex else word.length-1 ] == ' '){
+                return true
+            }
+        }
+    }
+    return false
+}
 
 internal fun map(
         value: Float,
@@ -53,38 +73,27 @@ internal fun convertDpToPixel(context: Context, dp: Float): Float {
     return dp * (metrics.densityDpi.toFloat() / DisplayMetrics.DENSITY_DEFAULT)
 }
 
-internal fun addFragment(activity: AppCompatActivity, fragment: Fragment, containerId: Int, transactionIds: IntArray = intArrayOf(R.anim.nothing_animation,R.anim.nothing_animation,R.anim.nothing_animation,R.anim.nothing_animation)) {
-    if (activity.supportFragmentManager.fragments.contains(fragment)) {
-        return
-    }
-
-    val container : View  = activity.findViewById(containerId)
-    container.visibility = View.VISIBLE
-
+internal fun addFragment(activity: AppCompatActivity, fragment: Fragment, containerId: Int, transactionIds: IntArray = intArrayOf(R.anim.nothing_animation,R.anim.nothing_animation)) {
     val fragmentTransaction = activity.supportFragmentManager.beginTransaction()
 
     fragmentTransaction.setCustomAnimations(
             transactionIds[0],
-            transactionIds[1],
-            transactionIds[2],
-            transactionIds[3]
+            transactionIds[1]
     )
 
     fragmentTransaction.add(containerId, fragment, Fragment::class.java.simpleName)
     fragmentTransaction.addToBackStack(null)
-    fragmentTransaction.commit()
+    fragmentTransaction.commitAllowingStateLoss()
 }
 
 
-internal fun removeFragment(activity: AppCompatActivity, fragment: Fragment, transactionIds: IntArray = intArrayOf(R.anim.nothing_animation,R.anim.nothing_animation,R.anim.nothing_animation,R.anim.nothing_animation)) {
+internal fun removeFragment(activity: AppCompatActivity, fragment: Fragment, transactionIds: IntArray = intArrayOf(R.anim.nothing_animation,R.anim.nothing_animation)) {
 
     val fragmentTransaction = activity.supportFragmentManager.beginTransaction()
 
     fragmentTransaction.setCustomAnimations(
             transactionIds[0],
-            transactionIds[1],
-            transactionIds[2],
-            transactionIds[3]
+            transactionIds[1]
     )
 
     fragmentTransaction.remove(fragment)

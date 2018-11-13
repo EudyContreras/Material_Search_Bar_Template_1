@@ -1,6 +1,4 @@
-package com.eudycontreras.materialsearchbarlibary.listeners
-
-import com.eudycontreras.materialsearchbarlibary.modelsMSB.SearchResult
+package com.eudycontreras.materialsearchbarlibary.modelsMSB
 
 /**
  * Unlicensed private property of the author and creator.
@@ -11,6 +9,7 @@ import com.eudycontreras.materialsearchbarlibary.modelsMSB.SearchResult
  * @author  Eudy Contreras
  * @version 1.0
  */
-interface SearchResultListener<T> {
-    fun onSearchResultObtained(searchResults: List<SearchResult<T>>)
-}
+data class SearchResult<DATA>(
+    var resultPriority: Int = 0,
+    var data: DATA
+)
