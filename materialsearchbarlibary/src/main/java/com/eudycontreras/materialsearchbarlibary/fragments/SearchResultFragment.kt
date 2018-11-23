@@ -15,7 +15,6 @@ import android.view.ViewGroup
 import android.view.animation.DecelerateInterpolator
 import com.eudycontreras.materialsearchbarlibary.*
 import com.eudycontreras.materialsearchbarlibary.customViews.CustomCoordinatorLayout
-import com.eudycontreras.materialsearchbarlibary.listeners.BackPressListener
 import com.eudycontreras.materialsearchbarlibary.listeners.TouchEventListener
 
 /**
@@ -34,12 +33,22 @@ class SearchResultFragment : Fragment() {
     private lateinit var searchResultContainerBackground: View
 
     private lateinit var activity: AppCompatActivity
-    
-    private var backPressedListener: BackPressListener? = null
+
+    internal var name : String = "EudyContrerasMaterialSearchBarSearchResultFragment"
+
+    internal var showingResults: Boolean = false
+    internal var isAnimating: Boolean = false
 
     private var height : Float = 0f
     private var width : Float = 0f
 
+    companion object {
+        fun newInstance(name: String = "EudyContrerasMaterialSearchBarSearchResultFragment"): SearchResultFragment{
+            val fragment = SearchResultFragment()
+            fragment.name =  name
+            return fragment
+        }
+    }
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         activity = getActivity() as AppCompatActivity
@@ -55,12 +64,7 @@ class SearchResultFragment : Fragment() {
 
     override fun onResume() {
         super.onResume()
-        showResultContainer(null)
-    }
-
-    override fun onDestroyView() {
-        super.onDestroyView()
-        //this.activity.removeBackPressedEvent(backPressedEvent)
+        showResultContainer {showingResults =true; isAnimating = false}
     }
 
     private fun initViews(view: View) {
@@ -75,8 +79,6 @@ class SearchResultFragment : Fragment() {
                 hideSoftInputKeyboard(activity)
             }
         })
-
-       // this.activity.addBackPressedEvent(backPressedEvent)
     }
 
     private fun setDefaultValues() {
@@ -86,15 +88,12 @@ class SearchResultFragment : Fragment() {
         activity.windowManager.defaultDisplay.getMetrics(displayMetrics)
         width = displayMetrics.widthPixels.toFloat()
         height = displayMetrics.heightPixels.toFloat()
+        showingResults = true
     }
 
-    private val backPressedEvent = {
-        if (backPressedListener != null) {
-            backPressedListener?.onBackPressed()
-        }
-    }
+    private fun showResultContainer(onFinished: Action?) {
 
-    fun showResultContainer(onFinished: Action?) {
+        isAnimating = true
 
         val start = -(convertDpToPixel(activity, height) - convertDpToPixel(activity, 56f))
         var friction = 16f
@@ -114,15 +113,15 @@ class SearchResultFragment : Fragment() {
                             .alpha(1f)
                             .setDuration(0)
                             .start()
-                }, onFinished)
+                }, null)
 
         searchResultContainer.alpha = 0f
         searchResultContainer.pivotY = 0f
         searchResultContainer.translationY = start
         searchResultContainer.visibility = View.VISIBLE
 
-        friction = 16f
-        tension = 50f
+        friction = 15.7f
+        tension = 50.7f
 
         createSpringAnimation(start, 0f, duration, distance, friction, tension,
                 { value ->
@@ -140,7 +139,7 @@ class SearchResultFragment : Fragment() {
 
     fun hideResultContainer(onFinished: Action?) {
         val start = -(convertDpToPixel(activity, height) - convertDpToPixel(activity, 56f))
-
+        isAnimating = true
         searchResultContainerBackground.pivotY = 0f
         searchResultContainerBackground.scaleY = 1f
         searchResultContainerBackground.visibility = View.VISIBLE
@@ -153,6 +152,8 @@ class SearchResultFragment : Fragment() {
                     override fun onAnimationEnd(animation: Animator) {
                         super.onAnimationEnd(animation)
                         onFinished?.invoke()
+                        isAnimating = false
+                        showingResults = false
                     }
                 })
                 .start()
@@ -168,10 +169,6 @@ class SearchResultFragment : Fragment() {
                 .setDuration(300)
                 .setInterpolator(FastOutSlowInInterpolator())
                 .start()
-    }
-
-    fun setOnBackPressed(listener: BackPressListener) {
-        this.backPressedListener = listener
     }
 
     private class SearchResultAdapter(private var itemCount: Int): RecyclerView.Adapter<SearchResultFragment.SearchResultVH>() {

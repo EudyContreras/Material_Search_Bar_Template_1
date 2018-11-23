@@ -1,7 +1,7 @@
 package com.eudycontreras.materialsearchbarlibary
 
-import com.eudycontreras.materialsearchbarlibary.modelsMSB.SearchCriteria
 import com.eudycontreras.materialsearchbarlibary.modelsMSB.SearchResult
+import kotlin.reflect.KMutableProperty0
 
 /**
  * Unlicensed private property of the author and creator.
@@ -12,31 +12,39 @@ import com.eudycontreras.materialsearchbarlibary.modelsMSB.SearchResult
  * @author  Eudy Contreras
  * @version 1.0
  */
-class MaterialSearchEngine<T>(
-        internal var targetData: List<T> = ArrayList(),
-        internal var criteria: SearchCriteria<T> = SearchCriteria(),
-        var method: SearchMethod = SearchMethod.STARTS_WITH):
-        SearchEngine<T>(){
+class MaterialSearchEngine(var method: SearchMethod = SearchMethod.STARTS_WITH): SearchEngine(){
 
-    override fun performSearch(listener: (List<SearchResult<T>>) -> Unit): (String) -> Unit {
-        return {
-            val results = ArrayList<SearchResult<T>>()
+    override fun performSearch(input: String) : Map<String,List<SearchResult>>{
+        val results = HashMap<String,ArrayList<SearchResult>>()
 
-            for(data in targetData){
-                if(criteria.getRules().all { p-> p(data) }){
-                    if(criteria.getPropertyTargets().any {target->
-                                when(method){
-                                    SearchMethod.STARTS_WITH -> target.get(data).startsWith(it)
-                                    SearchMethod.HAS_WORD -> target.get(data).containsWord(it)
-                                    SearchMethod.CONTAINS -> target.get(data).contains(it)
-                                }
-                            }){
-                        results.add(SearchResult(data = data))
+        for(data in data){
+            val key = data.key
+            val values = data.value
+
+            rules[key]?.let {
+                for(value in values){
+                    if(it.all { rule-> rule(value) }){
+                        if(value.getDataTarget().any {target-> matchType(target,input,method)}){
+                            if(!results.containsKey(key)){
+                                val group = ArrayList<SearchResult>()
+                                group.add(SearchResult(data = value))
+                                results[key] = group
+                            }else{
+                                results[key]?.add(SearchResult(data = value))
+                            }
+                        }
                     }
                 }
             }
-            listener.invoke(results)
         }
+        return results
     }
 
+    private fun matchType(target: KMutableProperty0<String>, input: String, method: SearchMethod): Boolean{
+        return when(method){
+            SearchMethod.STARTS_WITH -> target.get().startsWith(input)
+            SearchMethod.HAS_WORD -> target.get().containsWord(input)
+            SearchMethod.CONTAINS -> target.get().contains(input)
+        }
+    }
 }

@@ -1,14 +1,19 @@
 package com.eudycontreras.materialsearchbarlibary
 
 import android.content.Context
+import android.support.annotation.UiThread
 import android.support.v4.app.Fragment
 import android.support.v7.app.AppCompatActivity
 import android.util.DisplayMetrics
 import android.view.inputmethod.InputMethodManager
+import com.eudycontreras.materialsearchbarlibary.modelsMSB.SearchableData
 import com.facebook.rebound.SimpleSpringListener
 import com.facebook.rebound.Spring
 import com.facebook.rebound.SpringConfig
 import com.facebook.rebound.SpringSystem
+import java.util.concurrent.BlockingQueue
+import java.util.concurrent.LinkedBlockingQueue
+import kotlin.reflect.KClass
 
 /**
  * Unlicensed private property of the author and creator.
@@ -23,20 +28,30 @@ internal typealias Action = ()-> Unit
 
 internal typealias SpringValue = (Float) -> Unit
 
-typealias ResultPredicate<T> = (T) -> Boolean
+typealias ResultPredicate = (SearchableData) -> Boolean
+
+fun<T : SearchableData> SearchableData.asType(type: KClass<T>): T?{
+    return type.objectInstance
+}
 
 internal fun String.containsWord(word: String): Boolean {
-    val index = this.indexOf(word)
+    val index = this.indexOf(word, 0,true)
 
     if(index != -1){
-        val lastIndex = (index + word.length)+1
+        val lastIndex = (index + (word.length-1))
 
         if(index != 0){
-            if(this[index-1]== ' ' && this[if (lastIndex != word.length) lastIndex else word.length-1 ] == ' '){
-                return true
+            if(this[index-1]== ' '){
+                if(lastIndex == this.length-1){
+                    return true
+                }else if(this[lastIndex + 1] == ' '){
+                    return true
+                }
             }
         }else{
-            if(this[if (lastIndex != word.length) lastIndex else word.length-1 ] == ' '){
+            if(lastIndex == this.length-1){
+                return true
+            }else if(this[lastIndex + 1] == ' '){
                 return true
             }
         }
@@ -50,9 +65,11 @@ internal fun map(
         fromHigh: Float,
         toLow: Float,
         toHigh: Float): Float {
+
     val fromRangeSize = fromHigh - fromLow
     val toRangeSize = toHigh - toLow
     val valueScale = (value - fromLow) / fromRangeSize
+
     return toLow + valueScale * toRangeSize
 }
 
@@ -82,7 +99,6 @@ internal fun addFragment(activity: AppCompatActivity, fragment: Fragment, contai
     )
 
     fragmentTransaction.add(containerId, fragment, Fragment::class.java.simpleName)
-    fragmentTransaction.addToBackStack(null)
     fragmentTransaction.commitAllowingStateLoss()
 }
 
@@ -129,4 +145,58 @@ internal fun createSpringAnimation(start: Float, end: Float, time: Int , distanc
         this.velocity = velocity.toDouble()
         this.springConfig = SpringConfig(tension.toDouble(), friction.toDouble())
     }
+}
+
+class Worker<RESULT>(
+        private var preWork: (() -> Unit)? = null,
+        private var postWork: ((RESULT) -> Unit)? = null) : Thread() {
+
+    private val buffer: BlockingQueue<()-> RESULT> = LinkedBlockingQueue()
+
+    private var doWork: Boolean = false
+
+    fun startWork() {
+       if(!doWork){
+           doWork = true
+           start()
+       }
+    }
+
+    fun cancelWork(){
+        doWork = false
+    }
+
+    fun execute(task: ()-> RESULT){
+        onPreExecute()
+        buffer.put(task)
+    }
+
+    fun setPreWork(preWork: (() -> Unit)? = null){
+        this.preWork = preWork
+    }
+
+    fun setPostWork(postWork: ((RESULT) -> Unit)? = null){
+        this.postWork = postWork
+    }
+
+    override fun run(){
+        while (doWork){
+            val result = buffer.take().invoke()
+            onPostExecute(result)
+        }
+    }
+
+    private fun onPreExecute() {
+        preWork?.invoke()
+    }
+
+    @UiThread
+    private fun onPostExecute(result: RESULT) {
+        postWork?.invoke(result)
+    }
+}
+
+internal fun<RESULT> doAsync(worker: Worker<RESULT>, work: ()-> RESULT){
+    worker.startWork()
+    worker.execute(work)
 }

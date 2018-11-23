@@ -11,6 +11,15 @@ import com.eudycontreras.materialsearchbarlibary.modelsMSB.SearchResult
  * @author  Eudy Contreras
  * @version 1.0
  */
-interface SearchResultListener<T> {
-    fun onSearchResultObtained(searchResults: List<SearchResult<T>>)
+interface SearchStateListener {
+
+    fun onSearchBarOpening()
+    fun onSearchBarClosing()
+
+    fun onSearchBarOpened()
+    fun onSearchBarClosed()
+
+    fun onPerformSearchStarted(prefix: String)
+    fun onPerformSearchFinished(results: Map<String,List<SearchResult>>)
+
 }

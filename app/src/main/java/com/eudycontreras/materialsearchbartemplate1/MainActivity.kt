@@ -11,9 +11,8 @@ import android.view.View
 import android.view.animation.DecelerateInterpolator
 import com.eudycontreras.materialsearchbarlibary.MaterialSearchBar
 import com.eudycontreras.materialsearchbarlibary.MaterialSearchEngine
-import com.eudycontreras.materialsearchbarlibary.SearchEngine
 import com.eudycontreras.materialsearchbarlibary.SearchMethod
-import com.eudycontreras.materialsearchbarlibary.modelsMSB.SearchCriteria
+import com.eudycontreras.materialsearchbarlibary.listeners.SearchStateListener
 import com.eudycontreras.materialsearchbarlibary.modelsMSB.SearchResult
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.component_toolbar_home.*
@@ -34,82 +33,107 @@ class MainActivity : AppCompatActivity(){
 
         dataA.shuffle()
 
-        for(i in 0 until names.size){
-            val data = DataA(id = i, name = names[i])
-            this.dataA.add(data)
+        val dataAKey = "DataA"
+        val dataBKey = "DataB"
+
+        dataA.addAll(names.mapIndexed { index, name ->  DataA(id = index, name = name)})
+        dataB.addAll(titles.mapIndexed { index, title ->  DataB(id = index, title = title)})
+
+        val accessorA = {Pair(dataAKey, dataA)}
+        val accessorB = {Pair(dataBKey, dataB)}
+
+        val engine = MaterialSearchEngine(SearchMethod.STARTS_WITH).apply {
+            addDataAccessors(accessorA, accessorB)
+
+            addSearchRule(dataAKey,
+                    { p-> p.getDataId() in 0..100 },
+                    { p -> p.getDataTarget().all { d-> d.get().isNotEmpty() }})
+
+            addSearchRule(dataBKey,
+                    { p-> p.getDataId() in 0..100 },
+                    { p -> p.getDataTarget().all { d-> d.get().isNotEmpty() }})
         }
 
-        for(i in 0 until titles.size){
-            val data = DataB(id = i, title = titles[i])
-            this.dataB.add(data)
-        }
-
-        val criteriaA = SearchCriteria<DataA>()
-        criteriaA.addSearchTarget(DataA::name)
-        criteriaA.addRule({ p-> p.id in 0..100 },{ p -> p.name.isNotEmpty()})
-
-        val criteriaB = SearchCriteria<DataB>()
-        criteriaB.addSearchTarget(DataB::title)
-        criteriaB.addRule({ p-> p.id in 0..100 },{ p-> p.title.isNotEmpty()})
-
-        val engineA: SearchEngine<DataA> = MaterialSearchEngine(criteria = criteriaA, targetData = dataA, method = SearchMethod.HAS_WORD)
-        val engineB: SearchEngine<DataB> = MaterialSearchEngine(criteria = criteriaB, targetData = dataB)
 
         searchBar = MaterialSearchBar(this)
         searchBar.setParentView(tool_bar.findViewById(R.id.toolbar_search_component))
         searchBar.setResultContainerId(R.id.fragment_outer_container)
-        searchBar.addSearchEngine(engineA) {
-            searchResults :List<SearchResult<DataA>> ->
-            for(i in searchResults){
-                Log.d("SEARCH RESULT for A: ", i.data.toString())
+        searchBar.setSearchEngine(engine)
+        searchBar.setSearchStateListener(object : SearchStateListener{
+            override fun onSearchBarOpening() {
+                Log.d("Search Bar","OPENING")
             }
-        }
 
-        searchBar.setOnSearchActive {
-            toolbar_settings_icon_wrapper.animate()
-                    .scaleY(0f)
-                    .scaleX(0f)
-                    .setListener(object : AnimatorListenerAdapter() {
-                        override fun onAnimationEnd(animation: Animator) {
-                            super.onAnimationEnd(animation)
-                            toolbar_settings_icon_wrapper.visibility = View.INVISIBLE
-                        }
-                    })
-                    .setDuration(200)
-                    .start()
+            override fun onSearchBarClosing() {
+                Log.d("Search Bar","CLOSING")
+            }
 
-            toolbar_profile_icon_wrapper.animate()
-                    .translationX(-convertDpToPixel(this, 50f))
-                    .alpha(0f)
-                    .setInterpolator(DecelerateInterpolator())
-                    .setDuration(50)
-                    .start()
-        }
+            override fun onSearchBarOpened() {
+                Log.d("Search Bar","OPENED")
+                toolbar_settings_icon_wrapper.animate()
+                        .scaleY(0f)
+                        .scaleX(0f)
+                        .setListener(object : AnimatorListenerAdapter() {
+                            override fun onAnimationEnd(animation: Animator) {
+                                super.onAnimationEnd(animation)
+                                toolbar_settings_icon_wrapper.visibility = View.INVISIBLE
+                            }
+                        })
+                        .setDuration(200)
+                        .start()
 
-        searchBar.setOnSearchInactive {
-            toolbar_settings_icon_wrapper.visibility = View.VISIBLE
-            toolbar_settings_icon_wrapper.animate()
-                    .scaleY(1f)
-                    .scaleX(1f)
-                    .setDuration(100)
-                    .setListener(null)
-                    .start()
+                toolbar_profile_icon_wrapper.animate()
+                        .translationX(-convertDpToPixel(this@MainActivity, 50f))
+                        .alpha(0f)
+                        .setInterpolator(DecelerateInterpolator())
+                        .setDuration(50)
+                        .start()
+            }
 
-            toolbar_profile_icon_wrapper.animate()
-                    .translationX(0f)
-                    .alpha(1f)
-                    .setDuration(100)
-                    .start()
-        }
+            override fun onSearchBarClosed() {
+                Log.d("Search Bar","CLOSED")
+                toolbar_settings_icon_wrapper.visibility = View.VISIBLE
+                toolbar_settings_icon_wrapper.animate()
+                        .scaleY(1f)
+                        .scaleX(1f)
+                        .setDuration(100)
+                        .setListener(null)
+                        .start()
+
+                toolbar_profile_icon_wrapper.animate()
+                        .translationX(0f)
+                        .alpha(1f)
+                        .setDuration(100)
+                        .start()
+            }
+
+            override fun onPerformSearchStarted(prefix: String) {
+                Log.d("Search Bar","SEARCH STARTED")
+            }
+
+            override fun onPerformSearchFinished(results: Map<String,List<SearchResult>>) {
+                Log.d("Search Bar","SEARCH ENDED")
+                for(result in results){
+                    val key = result.key
+                    val values = result.value
+
+                    for(value in values){
+                        val data = value.data
+                        Log.d("SEARCH RESULT for $key: ", data.toString())
+                    }
+                }
+            }
+        })
     }
 
     override fun onBackPressed() {
-        super.onBackPressed()
+        searchBar.onBackPressed{super.onBackPressed()}
     }
 
     private fun convertDpToPixel(context: Context, dp: Float): Float {
         val resources = context.resources
         val metrics = resources.displayMetrics
+
         return dp * (metrics.densityDpi.toFloat() / DisplayMetrics.DENSITY_DEFAULT)
     }
 }

@@ -41,6 +41,7 @@
             app:layout_constraintBottom_toBottomOf="parent"/>
 
         <FrameLayout
+            android:visibility="gone"
             android:id="@+id/toolbar_profile_icon_wrapper"
             android:background="@drawable/bg_shape_oval"
             android:backgroundTint="@color/colorPrimaryDark"
@@ -64,6 +65,7 @@
         </FrameLayout>
 
         <FrameLayout
+            android:visibility="gone"
             android:id="@+id/toolbar_settings_icon_wrapper"
             android:background="@drawable/bg_shape_oval"
             android:backgroundTint="@color/colorPrimaryDark"

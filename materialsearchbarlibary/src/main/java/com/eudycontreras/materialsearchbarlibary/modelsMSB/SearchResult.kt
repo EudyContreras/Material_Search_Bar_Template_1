@@ -9,7 +9,7 @@ package com.eudycontreras.materialsearchbarlibary.modelsMSB
  * @author  Eudy Contreras
  * @version 1.0
  */
-data class SearchResult<DATA>(
-    var resultPriority: Int = 0,
-    var data: DATA
+data class SearchResult(
+        var resultPriority: Int = 0,
+        var data: SearchableData
 )

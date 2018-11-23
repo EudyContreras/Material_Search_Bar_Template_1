@@ -18,7 +18,7 @@ import android.view.animation.OvershootInterpolator
 import android.widget.EditText
 import android.widget.TextView
 import com.eudycontreras.materialsearchbarlibary.fragments.SearchResultFragment
-import com.eudycontreras.materialsearchbarlibary.listeners.BackPressListener
+import com.eudycontreras.materialsearchbarlibary.listeners.SearchStateListener
 import com.eudycontreras.materialsearchbarlibary.modelsMSB.SearchResult
 
 /**
@@ -30,7 +30,7 @@ import com.eudycontreras.materialsearchbarlibary.modelsMSB.SearchResult
  * @author  Eudy Contreras
  * @version 1.0
  */
-class MaterialSearchBar(private var activity: AppCompatActivity,  parentView: View?, private var resultContainerId: Int) {
+class MaterialSearchBar(private var activity: AppCompatActivity, private var parentView: View? = null, private var resultContainerId: Int = -1) {
 
     private lateinit var inputField: EditText
     private lateinit var searchHintText: TextView
@@ -43,19 +43,16 @@ class MaterialSearchBar(private var activity: AppCompatActivity,  parentView: Vi
     private lateinit var searchBarLayout: ConstraintLayout
     private lateinit var searchLayoutParent: ConstraintLayout
 
-    private var resultFragment: SearchResultFragment = SearchResultFragment()
+    private var resultFragment: SearchResultFragment = SearchResultFragment.newInstance()
 
-    private var onSearchActive: Action? = null
-    private var onSearchInactive: Action? = null
+    private var backgroundWorker: Worker<Map<String,List<SearchResult>>> = Worker()
 
     private var searchHintShown = true
     private var showingResults = false
 
-    private val engines: ArrayList<(String)->Unit> = ArrayList()
+    private var searchEngine: SearchEngine? = null
 
-    constructor(activity: AppCompatActivity, parentView: View): this(activity, parentView, -1)
-
-    constructor(activity: AppCompatActivity): this(activity, null, -1)
+    private var stateListener: SearchStateListener? = null
 
     init {
         this.initComponents()
@@ -65,12 +62,18 @@ class MaterialSearchBar(private var activity: AppCompatActivity,  parentView: Vi
         }
     }
 
-    private fun initComponents() {
-        this.resultFragment.setOnBackPressed(object : BackPressListener {
-            override fun onBackPressed() {
+    fun onBackPressed(delegate:()->Unit){
+        if(!resultFragment.isAnimating){
+            if(resultFragment.showingResults){
                 removeInputFocus()
+            }else{
+                delegate()
             }
-        })
+        }
+    }
+
+    private fun initComponents() {
+
     }
 
     fun setParentView(parentView: View){
@@ -174,6 +177,7 @@ class MaterialSearchBar(private var activity: AppCompatActivity,  parentView: Vi
                 .setDuration(200)
                 .start()
 
+        searchClear.visibility = View.GONE
         searchClear.isFocusable = false
         searchClear.isClickable = false
         searchClear.animate()
@@ -200,6 +204,7 @@ class MaterialSearchBar(private var activity: AppCompatActivity,  parentView: Vi
                 .setInterpolator(OvershootInterpolator())
                 .start()
 
+        searchClear.visibility = View.VISIBLE
         searchClear.isFocusable = true
         searchClear.isClickable = true
         searchClear.animate()
@@ -219,6 +224,7 @@ class MaterialSearchBar(private var activity: AppCompatActivity,  parentView: Vi
     }
 
     private fun activateSearchBar() {
+        stateListener?.onSearchBarOpening()
 
         val constraintSet = ConstraintSet()
         constraintSet.clone(searchLayoutParent)
@@ -232,9 +238,7 @@ class MaterialSearchBar(private var activity: AppCompatActivity,  parentView: Vi
             transition.addListener(object : TransitionListenerAdapter() {
                 override fun onTransitionEnd(transition: Transition) {
                     super.onTransitionEnd(transition)
-                    if (onSearchActive != null) {
-                        onSearchActive?.invoke()
-                    }
+                    stateListener?.onSearchBarOpened()
                    //openSearchResults()
                     searchCancel.isClickable = true
                     searchCancel.isFocusable = true
@@ -265,6 +269,7 @@ class MaterialSearchBar(private var activity: AppCompatActivity,  parentView: Vi
     }
 
     private fun deactivateSearchBar() {
+        stateListener?.onSearchBarClosing()
 
         val constraintSet = ConstraintSet()
         constraintSet.clone(searchLayoutParent)
@@ -277,10 +282,7 @@ class MaterialSearchBar(private var activity: AppCompatActivity,  parentView: Vi
             transition.addListener(object : TransitionListenerAdapter() {
                 override fun onTransitionEnd(transition: Transition) {
                     super.onTransitionEnd(transition)
-                    if (onSearchInactive != null) {
-                        onSearchInactive?.invoke()
-                    }
-
+                    stateListener?.onSearchBarClosed()
                     searchCancel.isClickable = false
                     searchCancel.isFocusable = false
                     searchCancel.animate()
@@ -328,8 +330,9 @@ class MaterialSearchBar(private var activity: AppCompatActivity,  parentView: Vi
     }
 
     private fun performSearch(input: String) {
-        for (engine in engines){
-            engine(input)
+        searchEngine?.run {
+            stateListener?.onPerformSearchStarted(input)
+            doAsync(backgroundWorker) {performSearch(input)}
         }
     }
 
@@ -341,15 +344,43 @@ class MaterialSearchBar(private var activity: AppCompatActivity,  parentView: Vi
          hideResultsWindow()
     }
 
-    fun setOnSearchActive(action: Action?) {
-        this.onSearchActive = action
+    fun setSearchStateListener(listener: SearchStateListener){
+        this.stateListener = listener
+
+        if(stateListener != null){
+            val postWork:((Map<String,List<SearchResult>>)-> Unit)? = {it-> stateListener?.onPerformSearchFinished(it)}
+            backgroundWorker.setPostWork(postWork)
+        }
     }
 
-    fun setOnSearchInactive(action: Action?) {
-        this.onSearchInactive = action
+    fun setSearchStateListener(listener: (Map<String,List<SearchResult>>) -> Unit){
+        setSearchStateListener(object : SearchStateListener{
+            override fun onSearchBarOpening() {
+                TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+            }
+
+            override fun onSearchBarClosing() {
+                TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+            }
+
+            override fun onSearchBarOpened() {
+                TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+            }
+
+            override fun onSearchBarClosed() {
+                TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+            }
+
+            override fun onPerformSearchStarted(prefix: String) {
+                TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+            }
+
+            override fun onPerformSearchFinished(results: Map<String, List<SearchResult>>) {
+                listener.invoke(results)
+            }})
     }
 
-    fun <T> addSearchEngine(engine: SearchEngine<T>, listener: (List<SearchResult<T>>)-> Unit){
-        engines.add(engine.performSearch(listener))
+    fun setSearchEngine(engine: SearchEngine?){
+        this.searchEngine = engine
     }
 }
