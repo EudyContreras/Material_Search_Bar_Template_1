@@ -12,16 +12,15 @@ import kotlin.reflect.KMutableProperty0
  * @author  Eudy Contreras
  * @version 1.0
  */
-class MaterialSearchEngine(var method: SearchMethod = SearchMethod.STARTS_WITH): SearchEngine(){
+class MaterialSearchEngine(private val method: SearchMethod = SearchMethod.STARTS_WITH): SearchEngine(){
 
     override fun performSearch(input: String) : Map<String,List<SearchResult>>{
         val results = HashMap<String,ArrayList<SearchResult>>()
-
-        for(data in data){
-            val key = data.key
-            val values = data.value
-
-            rules[key]?.let {
+        for(accessor in accessors){
+            rules[accessor.key]?.let {
+                val dataSet = accessor.value
+                val key = dataSet.key
+                val values = dataSet.value
                 for(value in values){
                     if(it.all { rule-> rule(value) }){
                         if(value.getDataTarget().any {target-> matchType(target,input,method)}){
@@ -42,9 +41,9 @@ class MaterialSearchEngine(var method: SearchMethod = SearchMethod.STARTS_WITH):
 
     private fun matchType(target: KMutableProperty0<String>, input: String, method: SearchMethod): Boolean{
         return when(method){
-            SearchMethod.STARTS_WITH -> target.get().startsWith(input)
+            SearchMethod.STARTS_WITH -> target.get().startsWith(input,true)
             SearchMethod.HAS_WORD -> target.get().containsWord(input)
-            SearchMethod.CONTAINS -> target.get().contains(input)
+            SearchMethod.CONTAINS -> target.get().contains(input, true)
         }
     }
 }

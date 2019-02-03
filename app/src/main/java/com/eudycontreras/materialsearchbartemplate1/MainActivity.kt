@@ -13,6 +13,7 @@ import com.eudycontreras.materialsearchbarlibary.MaterialSearchBar
 import com.eudycontreras.materialsearchbarlibary.MaterialSearchEngine
 import com.eudycontreras.materialsearchbarlibary.SearchMethod
 import com.eudycontreras.materialsearchbarlibary.listeners.SearchStateListener
+import com.eudycontreras.materialsearchbarlibary.modelsMSB.SearchEntry
 import com.eudycontreras.materialsearchbarlibary.modelsMSB.SearchResult
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.component_toolbar_home.*
@@ -39,14 +40,15 @@ class MainActivity : AppCompatActivity(){
         dataA.addAll(names.mapIndexed { index, name ->  DataA(id = index, name = name)})
         dataB.addAll(titles.mapIndexed { index, title ->  DataB(id = index, title = title)})
 
-        val accessorA = {Pair(dataAKey, dataA)}
-        val accessorB = {Pair(dataBKey, dataB)}
+        val accessorA = Pair(dataAKey,SearchEntry(dataAKey, dataA))
+        val accessorB = Pair(dataBKey,SearchEntry(dataBKey, dataB))
 
         val engine = MaterialSearchEngine(SearchMethod.STARTS_WITH).apply {
             addDataAccessors(accessorA, accessorB)
 
             addSearchRule(dataAKey,
                     { p-> p.getDataId() in 0..100 },
+                    { p -> p.getDataTarget().all { d -> d.get()[1] != 'l' }},
                     { p -> p.getDataTarget().all { d-> d.get().isNotEmpty() }})
 
             addSearchRule(dataBKey,

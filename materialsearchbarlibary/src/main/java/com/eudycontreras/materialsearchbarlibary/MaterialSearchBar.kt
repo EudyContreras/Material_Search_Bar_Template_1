@@ -30,7 +30,7 @@ import com.eudycontreras.materialsearchbarlibary.modelsMSB.SearchResult
  * @author  Eudy Contreras
  * @version 1.0
  */
-class MaterialSearchBar(private var activity: AppCompatActivity, private var parentView: View? = null, private var resultContainerId: Int = -1) {
+class MaterialSearchBar(private var activity: AppCompatActivity, parentView: View? = null, private var resultContainerId: Int = -1) {
 
     private lateinit var inputField: EditText
     private lateinit var searchHintText: TextView
@@ -112,9 +112,9 @@ class MaterialSearchBar(private var activity: AppCompatActivity, private var par
     }
 
     private fun registerListeners() {
-        this.searchClear.setOnClickListener { _ -> clearSearchBar() }
+        this.searchClear.setOnClickListener {  clearSearchBar() }
 
-        this.searchCancel.setOnClickListener { _ ->
+        this.searchCancel.setOnClickListener {
             hideSoftInputKeyboard(activity)
             Handler().postDelayed({ inputField.clearFocus() }, 50)
         }
@@ -351,33 +351,6 @@ class MaterialSearchBar(private var activity: AppCompatActivity, private var par
             val postWork:((Map<String,List<SearchResult>>)-> Unit)? = {it-> stateListener?.onPerformSearchFinished(it)}
             backgroundWorker.setPostWork(postWork)
         }
-    }
-
-    fun setSearchStateListener(listener: (Map<String,List<SearchResult>>) -> Unit){
-        setSearchStateListener(object : SearchStateListener{
-            override fun onSearchBarOpening() {
-                TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-            }
-
-            override fun onSearchBarClosing() {
-                TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-            }
-
-            override fun onSearchBarOpened() {
-                TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-            }
-
-            override fun onSearchBarClosed() {
-                TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-            }
-
-            override fun onPerformSearchStarted(prefix: String) {
-                TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-            }
-
-            override fun onPerformSearchFinished(results: Map<String, List<SearchResult>>) {
-                listener.invoke(results)
-            }})
     }
 
     fun setSearchEngine(engine: SearchEngine?){

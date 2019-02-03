@@ -14,6 +14,7 @@ import com.facebook.rebound.SpringSystem
 import java.util.concurrent.BlockingQueue
 import java.util.concurrent.LinkedBlockingQueue
 import kotlin.reflect.KClass
+import kotlin.reflect.KMutableProperty0
 
 /**
  * Unlicensed private property of the author and creator.
@@ -29,6 +30,8 @@ internal typealias Action = ()-> Unit
 internal typealias SpringValue = (Float) -> Unit
 
 typealias ResultPredicate = (SearchableData) -> Boolean
+
+typealias SearchProperty = KMutableProperty0<String>
 
 fun<T : SearchableData> SearchableData.asType(type: KClass<T>): T?{
     return type.objectInstance
